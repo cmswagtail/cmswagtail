@@ -31,7 +31,8 @@ INSTALLED_APPS = [
     'site_settings',
     'subscribers',
     'blog',
-   
+    'menus',
+    'contact',
 
     'wagtail.contrib.routable_page',
     'wagtail.contrib.forms',
