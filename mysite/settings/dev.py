@@ -12,6 +12,24 @@ ALLOWED_HOSTS = ['*']
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 
+INSTALLED_APPS = INSTALLED_APPS + [
+    'debug_toolbar',
+    'django_extensions',
+]
+
+
+MIDDLEWARE = MIDDLEWARE + [
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+]
+
+
+CACHES = {
+     "default": {
+         "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+         "LOCATION": "/home/rudi/cms/mysite/cache"
+     }
+ }
+
 try:
     from .local import *
 except ImportError:

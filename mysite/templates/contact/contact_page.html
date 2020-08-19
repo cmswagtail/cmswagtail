@@ -1,3 +1,4 @@
+
 {% extends 'base.html' %}
 {% load wagtailcore_tags %}
 
@@ -32,7 +33,10 @@
             <ul class="contact-form">
                 {{ form.as_ul }}
             </ul>
-
             <button type="submit" class="btn btn-success">
                 Submit Form
             </button>
+        </form>
+    </div>
+
+{% endblock %}

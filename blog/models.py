@@ -10,6 +10,9 @@ from wagtail.admin.edit_handlers import (
     MultiFieldPanel,
     InlinePanel,
 )
+
+from django.core.cache import cache
+from django.core.cache.utils import make_template_fragment_key
 from wagtail.snippets.edit_handlers import SnippetChooserPanel
 from wagtail.core.fields import StreamField
 from wagtail.core.models import Page, Orderable
@@ -249,6 +252,7 @@ class ArticleBlogPage(BlogDetailPage):
 
 # Second subclassed page
 class VideoBlogPage(BlogDetailPage):
+
     """A video subclassed page."""
 
     template = "blog/video_blog_page.html"
@@ -272,4 +276,16 @@ class VideoBlogPage(BlogDetailPage):
         ),
         FieldPanel("youtube_video_id"),
         StreamFieldPanel("content"),
-    ] 
+    ]
+
+
+def save(self, *args, **kwargs):
+        """Create a template fragment key.
+        Then delete the key."""
+        key = make_template_fragment_key(
+            "blog_post_preview",
+            [self.id]
+        )
+        cache.delete(key)
+        return super().save(*args, **kwargs)     
+

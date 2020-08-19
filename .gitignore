@@ -13,7 +13,6 @@ local.py
 *.todo
 .vimcache
 .vscode
-
 # Packages
 *.7z
 *.dmg
@@ -23,22 +22,6 @@ local.py
 *.rar
 *.tar
 *.zip
-
 # Logs and databases
 *.log
 *.sql
-*.sqlite
-*.sqlite3
-*.db
-postgres-data/
-
-# OS generated files
-.DS_Store*
-thumbs.db
-Thumbs.db
-Desktop.ini
-
-media/*
-
-# Envs
-.venv/
