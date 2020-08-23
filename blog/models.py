@@ -2,6 +2,8 @@
 from django import forms
 from django.db import models
 from django.shortcuts import render
+from taggit.models import TaggedItemBase
+from modelcluster.contrib.taggit import ClusterTaggableManager
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from modelcluster.fields import ParentalKey, ParentalManyToManyField
 from wagtail.admin.edit_handlers import (
@@ -11,6 +13,10 @@ from wagtail.admin.edit_handlers import (
     InlinePanel,
 )
 
+from wagtail.images.api.fields import ImageRenditionField
+
+from wagtail.api import APIField
+from rest_framework.fields import Field
 from django.core.cache import cache
 from django.core.cache.utils import make_template_fragment_key
 from wagtail.snippets.edit_handlers import SnippetChooserPanel
@@ -20,8 +26,22 @@ from wagtail.images.edit_handlers import ImageChooserPanel
 from wagtail.contrib.routable_page.models import RoutablePageMixin, route
 from wagtail.snippets.models import register_snippet
 from streams import blocks
+
+
+class ImageSerializedField(Field):
+    """A custom serializer used in Wagtails v2 API."""
+
+    def to_representation(self, value):
+        """Return the image URL, title and dimensions."""
+        return {
+            "url": value.file.url,
+            "title": value.title,
+            "width": value.width,
+            "height": value.height,
+        }
 class BlogAuthorsOrderable(Orderable):
     """This allows us to select one or more blog authors from Snippets."""
+
     page = ParentalKey("blog.BlogDetailPage", related_name="blog_authors")
     author = models.ForeignKey(
         "blog.BlogAuthor",
@@ -30,6 +50,34 @@ class BlogAuthorsOrderable(Orderable):
     panels = [
         SnippetChooserPanel("author"),
     ]
+    @property
+    def author_name(self):
+        return self.author.name
+    @property
+    def author_website(self):
+        return self.author.website
+
+    @property
+    def author_image(self):
+        return self.author.image
+
+    api_fields = [
+        APIField("author_name"),
+        APIField("author_website"),
+        APIField("author_image", serializer=ImageSerializedField()),
+       # The below APIField is using a Wagtail-built DRF Serializer that supports
+        # custom image rendition sizes
+        APIField(
+            "image",
+            serializer=ImageRenditionField(
+                'fill-200x250',
+                source="author_image"
+            )
+        ),
+    
+    
+    ]
+
 class BlogAuthor(models.Model):
     """Blog author for snippets."""
     name = models.CharField(max_length=100)
@@ -93,6 +141,9 @@ class BlogListingPage(RoutablePageMixin, Page):
 
 
     template = "blog/blog_listing_page.html"
+    ajax_template = "blog/blog_listing_page_ajax.html"
+    max_count = 1
+    subpage_types = ['blog.VideoBlogPage', 'blog.ArticleBlogPage']
     custom_title = models.CharField(
         max_length=100,
         blank=False,
@@ -108,6 +159,14 @@ class BlogListingPage(RoutablePageMixin, Page):
           # Get all posts
         all_posts = BlogDetailPage.objects.live().public().order_by('-first_published_at')
         # Paginate all posts by 2 per page
+        if request.GET.get('tag', None):
+            tags = request.GET.get('tag')
+            all_posts = all_posts.filter(tags__slug__in=[tags]) 
+
+
+
+
+
         paginator = Paginator(all_posts, 2)
         # Try to get the ?page=x value
         page = request.GET.get("page")
@@ -146,6 +205,11 @@ class BlogListingPage(RoutablePageMixin, Page):
         context = self.get_context(request, *args, **kwargs)
         context["posts"] = context["posts"][:1]
         return render(request, "blog/latest_posts.html", context)
+
+
+
+
+
     def get_sitemap_urls(self, request):
         # Uncomment to have no sitemap for this page
         # return []
@@ -159,9 +223,32 @@ class BlogListingPage(RoutablePageMixin, Page):
         )
         return sitemap
 
+    
+
+
+class BlogPageTag(TaggedItemBase):
+    content_object = ParentalKey(
+        'BlogDetailPage',
+        related_name='tagged_items',
+        on_delete=models.CASCADE,
+    )
+
+
+
+
+
+
+
+
+
 
 class BlogDetailPage(Page):
     """Parental blog detail page."""
+    subpage_types = []
+    parent_page_types = ['blog.BlogListingPage']
+
+
+    tags = ClusterTaggableManager(through=BlogPageTag, blank=True)
 
     custom_title = models.CharField(
         max_length=100,
@@ -193,6 +280,7 @@ class BlogDetailPage(Page):
 
     content_panels = Page.content_panels + [
         FieldPanel("custom_title"),
+        FieldPanel("tags"),
         ImageChooserPanel("banner_image"),
         MultiFieldPanel(
             [
@@ -231,6 +319,8 @@ class ArticleBlogPage(BlogDetailPage):
 
     content_panels = Page.content_panels + [
         FieldPanel("custom_title"),
+        FieldPanel("tags"),
+
         FieldPanel("subtitle"),
         ImageChooserPanel("banner_image"),
         ImageChooserPanel("intro_image"),
@@ -261,6 +351,7 @@ class VideoBlogPage(BlogDetailPage):
 
     content_panels = Page.content_panels + [
         FieldPanel("custom_title"),
+        FieldPanel("tags"),
         ImageChooserPanel("banner_image"),
         MultiFieldPanel(
             [

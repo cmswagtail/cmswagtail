@@ -22,23 +22,28 @@ BASE_DIR = os.path.dirname(PROJECT_DIR)
 
 
 # Application definition
-
 INSTALLED_APPS = [
     'home',
+    'search',
     'flex',
     'streams',
-    'search',
     'site_settings',
     'subscribers',
     'blog',
     'menus',
     'contact',
+    'core',
+  
+    
 
-    'wagtail.contrib.routable_page',
+
+
+
     'wagtail.contrib.forms',
     'wagtail.contrib.modeladmin',
     'wagtail.contrib.redirects',
     'wagtail.contrib.settings',
+    'wagtail.contrib.routable_page',
     'wagtail.contrib.sitemaps',
     'wagtail.embeds',
     'wagtail.sites',
@@ -49,19 +54,21 @@ INSTALLED_APPS = [
     'wagtail.search',
     'wagtail.admin',
     'wagtail.core',
+    'wagtail.api.v2',
 
     'modelcluster',
     'taggit',
-
-    'captcha',
-    'wagtailcaptcha',
     'django.contrib.admin',
     'django.contrib.auth',
-    'django.contrib.sitemaps',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sitemaps',
+
+    'captcha',
+    'wagtailcaptcha',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -102,10 +109,11 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'mysite',
     }
 }
 

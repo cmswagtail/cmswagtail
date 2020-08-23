@@ -1,27 +1,9 @@
-# Python
-*.py[cod]
-*.egg*
-local.py
-.mypy_cache
-*.djcache
-
-# Temporary files
+*.pyc
+.DS_Store
 *.swp
-*.swo
-*.tmp
-*~
-*.todo
-.vimcache
-.vscode
-# Packages
-*.7z
-*.dmg
-*.gz
-*.iso
-*.jar
-*.rar
-*.tar
-*.zip
-# Logs and databases
-*.log
-*.sql
+/venv/
+.venv/
+/static/
+/media/
+
+.vscode/
